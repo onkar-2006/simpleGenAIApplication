@@ -1,9 +1,7 @@
 import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
-import os 
-groq_api_key=os.getenv("groq_api_key")
-os.environ["groq_api_key"]=groq_api_key
+groq_api_key="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"
 
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate 
