@@ -1,0 +1,42 @@
+from langgraph.graph import MessageGraph, MessagesState
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_groq import ChatGroq
+from langgraph.graph import StateGraph
+from langgraph.graph  import START ,END
+
+
+model=ChatGroq(model_name="llama-3.1-8b-instant" , groq_api_key=api_key)
+
+def create_agent(state:MessagesState):
+  messages=state['messages']
+  responce=model.invoke(messages)
+  return {"messages":[responce]}
+  
+
+checkpointer=MemorySaver()
+
+graph=StateGraph(MessagesState)
+graph.add_node("agent_node" ,create_agent)
+graph.add_edge(START , "agent_node")
+graph.add_edge("agent_node" , END)
+app=graph.compile(checkpointer=checkpointer)
+
+
+def interact_with_agent_with_memory():
+ # Use a thread ID to simulate a continuous session
+ thread_id = "12345"
+ while True:
+      user_input = input("You: ")
+      if user_input.lower() in ["exit", "quit"]:
+           print("Ending the conversation.")
+           break
+      input_message = {
+             "messages": [("human", user_input)]
+     }
+
+ # Invoke the graph with short-term memory enabled
+      config = {"configurable": {"thread_id": thread_id}}
+      for chunk in app.stream(input_message,
+        config=config, stream_mode="values"):
+        chunk["messages"][-1].pretty_print()
+interact_with_agent_with_memory()
